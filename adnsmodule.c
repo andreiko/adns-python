@@ -95,6 +95,7 @@ static _constant_class adns_rr[] = {
 	{ "unknown", adns_r_unknown },
 	{ "none", adns_r_none },
 	{ "A", adns_r_a },
+	{ "AAAA", adns_r_aaaa },
 	{ "NSraw", adns_r_ns_raw },
 	{ "NS", adns_r_ns },
 	{ "CNAME", adns_r_cname },
@@ -153,10 +154,16 @@ interpret_addr(
 	adns_rr_addr *v
 	)
 {
-	PyObject *o;
-	o = Py_BuildValue("is", v->addr.inet.sin_family, 
-			  inet_ntoa(v->addr.inet.sin_addr)) ;
-	return o;
+	if (v->addr.inet.sin_family == AF_INET) {
+		return Py_BuildValue("is", v->addr.inet.sin_family,
+							 inet_ntoa(v->addr.inet.sin_addr)) ;
+	} else if (v->addr.inet.sin_family == AF_INET6) {
+		char addr_out[INET6_ADDRSTRLEN];
+		inet_ntop(AF_INET6, &v->addr.inet.sin_addr, (char*)&addr_out, INET6_ADDRSTRLEN);
+		return Py_BuildValue("is", v->addr.inet.sin_family, addr_out);
+	} else {
+		return NULL;
+	}
 }
 
 static PyObject *
@@ -203,6 +210,15 @@ interpret_answer(
 			} else {
 				struct in_addr *v = answer->rrs.inaddr+i;
 				a = Py_BuildValue("s", inet_ntoa(*v));
+			}
+			break;
+		case adns_r_aaaa:
+			if (td) {
+				a = interpret_addr((answer->rrs.addr+i));
+			} else {
+				char addr_out[INET6_ADDRSTRLEN];
+				inet_ntop(AF_INET6, answer->rrs.in6addr+i, (char*)&addr_out, INET6_ADDRSTRLEN);
+				a = Py_BuildValue("s", addr_out);
 			}
 			break;
 		case adns_r_hinfo:
