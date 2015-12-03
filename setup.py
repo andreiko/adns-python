@@ -33,8 +33,7 @@ setup (# Distribution meta-data
     description = "An interface to GNU adns",
     author = "Andy Dustman",
     author_email = "farcepest@gmail.com",
-    url = "http://code.google.com/p/adns-python",
-    download_url = "http://adns-python.googlecode.com/files/adns-python-1.2.1.tar.gz",
+    url = "https://github.com/andreiko/adns-python/",
     long_description=long_description,
     license = "GPL",
     classifiers = [
